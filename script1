@@ -1,0 +1,143 @@
+#!/bin/sh
+
+echo n1
+cd ~
+rm -r test
+rm -r .sub
+
+mkdir test
+
+echo n2
+cd test
+> list
+ls -Al /etc >> list
+
+echo n3
+path="/root/test/list"
+cd /etc
+echo "Directories:" | tee -a $path
+find -maxdepth 1 -type d -name "*" | wc -l | tee -a $path
+echo "Hidden files:" | tee -a $path
+find -maxdepth 1 -type f -name ".*" | wc -l | tee -a $path
+
+echo n4
+mkdir /root/test/links
+
+echo n5
+hPath="/root/test/links/list_hlink"
+ln $path $hPath
+
+echo n6
+sPath="/root/test/links/list_slink"
+ln -s $path $sPath
+
+echo n7
+ls $hPath -Al | cut -d " " -f2
+ls $path -Al | cut -d " " -f2
+ls $sPath -Al | cut -d " " -f2
+
+echo n8
+wc -l $path | cut -d " " -f1 | tee -a $hPath
+
+echo n9
+cmpRes=$(cmp $hPath $sPath)
+if [[ $cmpRes -eq "" ]];
+then
+	echo "YES"
+	echo "one"
+fi
+
+echo n10
+path2="/root/test/list1"
+mv $path $path2
+rm $sPath
+ln -s $path2 $sPath
+echo "files in directory test:"
+ls /root/test/
+
+echo n11
+cmpRes=$(cmp $hPath $sPath)
+if [[ $cmpRes -eq "" ]];
+then
+	echo "YES"
+fi
+
+echo n12
+lPath="/root/list_link"
+rm $lPath
+ln $path2 $lPath
+
+echo n13
+cd /etc
+confPath="/root/list_conf"
+find -type f -name "*.conf" > $confPath
+
+echo n14
+cd /etc 
+dPath="/root/list_d"
+find -type f -name ".d" > $dPath
+
+echo n15
+cdPath="/root/list_cond_d"
+cat $confPath $dPath > $cdPath
+
+echo n16
+subPath="/root/.sub/"
+mkdir $subPath
+
+echo n17
+cp $cdPath $subPath
+
+echo n18
+cp -b $cdPath $subPath
+
+echo n19
+tree /root/test/
+
+echo n20
+manPath="/root/man.txt"
+man --help > $manPath
+
+echo n21
+cd /root/
+split -b 1k man.txt
+
+echo n22
+mDir="/root/test/man.dir/"
+mkdir $mDir
+	
+echo n23
+mv /root/x* $mDir
+tree /root/
+
+echo n24
+secondManPath="/root/test/man.dir/man.txt"
+cat /root/test/man.dir/x* > $secondManPath
+
+echo n25
+cmpRes=$(cmp $secondManPath $manPath)
+if [[ $cmpRes -eq "" ]];
+then
+	echo "YES"
+fi
+
+echo n26
+echo $'string1 \nstring2\n' $(cat $manPath) $'\nstring3 \nstring4\n' > $manPath
+
+echo n27
+textPatch="/root/test/patch.new"
+diff -u $secondManPath $manPath > $textPatch
+
+echo n28
+mv $textPatch $mDir
+textPatch=$mDir$'patch.new'
+
+echo n29
+patch $secondManPath < $textPatch
+
+echo n30
+cmpRes=$(cmp $secondManPath $manPath)
+if [[ $cmpRes -eq "" ]];
+then
+	echo "YES"
+fi
