@@ -3,7 +3,6 @@
 echo n1
 cd ~
 rm -r test
-rm -r .sub
 
 mkdir test
 
@@ -82,7 +81,7 @@ cdPath="/root/list_cond_d"
 cat $confPath $dPath > $cdPath
 
 echo n16
-subPath="/root/.sub/"
+subPath="/root/test/.sub/"
 mkdir $subPath
 
 echo n17
@@ -92,7 +91,7 @@ echo n18
 cp -b $cdPath $subPath
 
 echo n19
-tree /root/test/
+tree -a /root/test/
 
 echo n20
 manPath="/root/man.txt"
