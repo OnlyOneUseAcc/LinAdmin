@@ -1,0 +1,108 @@
+#1
+fsisk /dev/sda
+    n
+    p
+    3
+    def
+    +300m
+    w
+
+#2
+blkid /dev/sda3 | cut -d " " -f2 > /root/fileTask2
+
+#3
+mkfs.ext4 -b 4096 /dev/sda3
+
+#4
+dump2fs -h /dev/sda3
+
+#5
+tune2fs -i 2m -C 2 /dev/sda3
+
+#6
+mkdir /mnt/newdisk
+mount -t ext4 /dev/sda3 /mnt/newdisk
+
+#7
+ln -s /mnt/newdisk ~/newdisk
+
+#8
+mkdir ~/newdisk/newDir
+
+#9
+#add string to /etc/fstab
+#/dev/sda3 /mnt/newdisk ext4 noexec, noatime 0 0
+
+#10
+umount /dev/sda3
+fdisk /dev/sda
+    d
+    3
+    n
+    p
+    3
+    def
+    +350M
+    w
+reboot
+
+
+resize2fs
+#11
+e2fsck -n /dev/sda
+
+#12
+fdisk /dev/sda
+    n
+    p
+    4
+    def
+    +12M
+    w
+
+mke2fs -O journal_dev /dev/sda4
+mke2fs -t ext4 -J device=/dev/sda4 /dev/sda3
+
+#13
+#need to del old
+fdisk /dev/sda
+    d
+    3
+    d
+    4
+    p
+    n
+    3
+    def
+    +100M
+    n
+    4
+    def
+    +100M
+    w
+
+#14
+mkdir /mnt/supernewdisk
+
+pvcreate /dev/sda3
+pvcreate /dev/sda4
+
+vgcreate vg1 /dev/sda3 /dev/sda4
+lvcreate -L190 -n lv1 vg1
+
+mkfs.ext4 /dev/vg1/lv1
+mount /dev/vg1/lv1 /mnt/suppernewdisk
+
+#15
+mkdir /mnt/share
+
+#install module
+sudo yum install cifs-utils
+cifs.mount //169.254.156.197/Monitor /mnt/share -O user=root password=PASSWORD
+#now enter pass
+
+#16
+# add strint to etc/fstab
+#169.254.156.197/Monitor /mnt/share cifs user=root password=PASSWORD, rw
+
+
